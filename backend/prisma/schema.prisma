@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String             @id @default(uuid())
+  email             String             @unique
+  password          String
+  name              String
+  biograph          String?
+  created_at        DateTime           @default(now())
+  updated_at        DateTime           @updatedAt
+  avatar            Avatar?
+  complaint_recived ComplaintRecived[]
+  complaint_sent    ComplaintSent[]
+  complaint_threads ComplaintThreads[]
+}
+
+model Avatar {
+  id       String @id @unique @default(uuid())
+  pathname String
+  user_id  String @unique
+  user     User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model Banner {
+  id                   String           @id @unique @default(uuid())
+  pathname             String
+  complaint_threads_id String           @unique
+  complaint_threads    ComplaintThreads @relation(fields: [complaint_threads_id], references: [id], onDelete: Cascade)
+}
+
+model ComplaintSent {
+  id                   String           @id @unique @default(uuid())
+  user_id              String
+  complaint_threads_id String
+  complaint_threads    ComplaintThreads @relation(fields: [complaint_threads_id], references: [id], onDelete: Cascade)
+  user                 User             @relation(fields: [user_id], references: [id])
+}
+
+model ComplaintRecived {
+  id                   String           @id @unique @default(uuid())
+  complaint            String
+  helped               Boolean
+  complaint_answer_id  String
+  complaint_threads_id String
+  user_id              String
+  created_at           DateTime         @default(now())
+  complaint_answer     ComplaintAnswer  @relation(fields: [complaint_answer_id], references: [id], onDelete: Cascade)
+  complaint_threads    ComplaintThreads @relation(fields: [complaint_threads_id], references: [id], onDelete: Cascade)
+  user                 User             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model ComplaintThreads {
+  id                String             @id @unique @default(uuid())
+  title             String
+  description       String
+  created_at        DateTime           @default(now())
+  updated_at        DateTime           @updatedAt
+  user_id           String
+  banner            Banner?
+  complaint_answer  ComplaintAnswer[]
+  complaint_recived ComplaintRecived[]
+  complaint_sent    ComplaintSent[]
+  user              User               @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model ComplaintAnswer {
+  id                   String             @id @unique @default(uuid())
+  complaint_threads_id String
+  complaint_threads    ComplaintThreads   @relation(fields: [complaint_threads_id], references: [id], onDelete: Cascade)
+  complaint_recived    ComplaintRecived[]
+}
